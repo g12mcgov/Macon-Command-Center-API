@@ -12,7 +12,7 @@ $ python app.py
 ```
 
 Endpoints:
-=======:
+=======
 
 The root endpoint (`/`) returns the IP Address of the host machine.
 
