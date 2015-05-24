@@ -1,6 +1,6 @@
-# Macon-Command-Center (Raspberry Pi Listener)
+# Macon-Command-Center-API
 
-A Flask listener (HTTP) for the Macon Command Center. Responds to Ajax requests and performs actions such as changing color of the Phillips Hue Lights and Opening/Closing Blinds.
+A small Flask RESTful listener service for the Macon Command Center. Responds to Ajax requests and performs actions such as changing color of the Phillips Hue Lights and Opening/Closing Blinds.
 
 This currently runs locally on a Raspberry Pi 2 and is written in Python to interact with RPI (GPIO) modules.
 
