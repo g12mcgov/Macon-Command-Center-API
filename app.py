@@ -32,8 +32,6 @@ def getBlindStatus():
 	"backyard": db.retrieve("backyard-position") if db.retrieve("backyard-position") else None
 	}
 
-	print blind_positions
-
 	if None in blind_positions.values(): 
 		abort(404)
 
@@ -79,7 +77,7 @@ def sideBlinds(command):
 		logger.error(
 			" Side Blinds: Invalid command (command=%s)", command
 			)
-		abort(401)
+		abort(404)
 
 @app.route("/lights/state/<command>", methods=['GET'])
 def changeLightState(command):
@@ -100,7 +98,7 @@ def changeLightState(command):
 		logger.error(
 			" Invalid command (command=%s)", command
 			)
-		abort(401)
+		abort(404)
 
 @app.route("/lights/state", methods=['GET'])
 def getLightState():
@@ -109,16 +107,32 @@ def getLightState():
 	"""
 	try:
 		if not db.retrieve("state"):
-			abort(401)	
+			abort(404)	
 		return jsonify({"state": db.retrieve("state")})
 	except Exception as err:
-		abort(401)
+		abort(404)
+
+@app.route("/lights/currentcolor", methods=['GET'])
+def getLightColor():
+	"""
+	Returns the current color of the lights.
+	"""
+	try:
+		if not (db.retrieve("color-xy") or db.retrieve("color-hex")):
+			abort(404)
+		# Return both xy and hex color values	
+		return jsonify({
+			"color-xy": db.retrieve("color-xy"), 
+			"color-hex": db.retrieve("color-hex")
+			})
+	except Exception as err:
+		abort(404)
 
 @app.route("/lights/<color>", methods=['GET'])
 def changeLightColor(color):
 	if not color.startswith("#"):
 		logger.info(" Invalid color, must start with '#'")
-		abort(401)
+		abort(404)
 	else:
 		hex_representation = binascii.unhexlify(color[1:])
 		
@@ -127,25 +141,17 @@ def changeLightColor(color):
 		
 		# Log it
 		colorpacket = '[ HEX=%s ], [ RGB=%s ], [ XY=%s ]' % (color, rgb, xy)
-		logger.info("Set 'color state' to %s", colorpacket)
+		logger.info("Set 'color' to %s", colorpacket)
 
-		# Insert into redis, but first check if already exists
-		if db.checkIfExists("color"):
-			abort(401)
-		db.insert("color", xy)
+		# # Insert into redis, but first check if already exists
+		# if db.checkIfExists("color-xy") or db.checkIfExists("color-hex"):
+		# 	abort(404)
+
+		# Insert both xy and hex color
+		db.insert("color-xy", xy)
+		db.insert("color-hex", color)
+
 		return jsonify({"Status": "Ok"})
-
-@app.route("/lights/color", methods=['GET'])
-def getLightColor():
-	"""
-	Returns the current color of the lights.
-	"""
-	try:
-		if not db.retrieve("color"):
-			abort(401)	
-		return jsonify({"color": db.retrieve("color")})
-	except Exception as err:
-		abort(401)
 
 
 if __name__ == "__main__":
