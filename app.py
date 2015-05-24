@@ -28,12 +28,14 @@ def getBlindStatus():
 	(side/backyard)
 	"""
 	blind_positions = {
-	"side-blinds": db.retrieve("side-position") if db.retrieve("side-position") else None,
-	"backyard-blinds": db.retrieve("backyard-position") if db.retrieve("backyard-position") else None
+	"side": db.retrieve("side-position") if db.retrieve("side-position") else None,
+	"backyard": db.retrieve("backyard-position") if db.retrieve("backyard-position") else None
 	}
 
+	print blind_positions
+
 	if None in blind_positions.values(): 
-		abort(401)
+		abort(404)
 
 	return jsonify(blind_positions)
 
@@ -56,7 +58,7 @@ def backyardBlinds(command):
 		logger.error(
 			" Backyard Blinds: Invalid command (command=%s)", command
 			)
-		abort(401)
+		abort(404)
 
 @app.route("/blinds/side/<command>", methods=['GET'])
 def sideBlinds(command):

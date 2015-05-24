@@ -51,6 +51,6 @@ The root endpoint (`/`) returns the IP Address of the host machine.
 	/blinds/side/:command 		# Opens/closes side blinds
 	/blinds/backyard/:command 	# Opens/closes backyard blinds
 	/lights/state/:command 		# Changes light state (on/off)
-	/lights/state 				# Retuns current light state (on/off)
+	/lights/state 				# Returns current light state (on/off)
 	/lights/:color				# Sets new color
 	/lights/color 				# Returns current color
