@@ -1,4 +1,6 @@
+import json
 import socket
+import requests
 import binascii
 import ConfigParser
 
@@ -10,6 +12,9 @@ from phillipshue.color import rgb_to_xy, hex_to_rgb
 # Flask import  
 from flask import Flask, abort
 from flask.ext.jsonpify import jsonify
+
+# Phillips Hue
+from phue import Bridge
 
 app = Flask(__name__)
 
@@ -85,20 +90,28 @@ def changeLightState(command):
 	Changes the state of the lights. (off/on)
 	"""
 	command = command.lower()
+	lights = bridge.get_light_objects()
 
 	if command == 'on':
+		# Loop through and turn all lights off
+		for light in lights:
+			light.on = True
 		db.insert("state", command)
 		logger.info("Set 'light state' to %s", command)
 		return jsonify({"Status": "Ok"})
 	elif command == 'off':
+		for light in lights:
+			light.on = False
 		db.insert("state", command)
 		logger.info("Set 'light state' to %s", command)
-		return jsonify({"Status": "Ok"})
+		return jsonify({
+			"Status": "Ok"
+			})
 	else:
 		logger.error(
 			" Invalid command (command=%s)", command
 			)
-		abort(404)
+		abort(500)
 
 @app.route("/lights/state", methods=['GET'])
 def getLightState():
@@ -108,7 +121,9 @@ def getLightState():
 	try:
 		if not db.retrieve("state"):
 			abort(404)	
-		return jsonify({"state": db.retrieve("state")})
+		return jsonify({
+			"state": db.retrieve("state")
+			})
 	except Exception as err:
 		abort(404)
 
@@ -119,20 +134,20 @@ def getLightColor():
 	"""
 	try:
 		if not (db.retrieve("color-xy") or db.retrieve("color-hex")):
-			abort(404)
+			abort(500)
 		# Return both xy and hex color values	
 		return jsonify({
 			"color-xy": db.retrieve("color-xy"), 
 			"color-hex": db.retrieve("color-hex")
 			})
 	except Exception as err:
-		abort(404)
+		abort(500)
 
 @app.route("/lights/<color>", methods=['GET'])
 def changeLightColor(color):
 	if not color.startswith("#"):
 		logger.info(" Invalid color, must start with '#'")
-		abort(404)
+		abort(500)
 	else:
 		hex_representation = binascii.unhexlify(color[1:])
 		
@@ -142,6 +157,13 @@ def changeLightColor(color):
 		# Log it
 		colorpacket = '[ HEX=%s ], [ RGB=%s ], [ XY=%s ]' % (color, rgb, xy)
 		logger.info("Set 'color' to %s", colorpacket)
+
+		# Change Phillips Lights 
+		lights = bridge.get_light_objects()
+		for light in lights:
+			light.on = True
+			light.brightness = 254
+			light.xy = xy
 
 		# # Insert into redis, but first check if already exists
 		# if db.checkIfExists("color-xy") or db.checkIfExists("color-hex"):
@@ -171,4 +193,10 @@ if __name__ == "__main__":
 	# Config logger for endpoint logging
 	logger = configLogger("Request")
 
-	app.run(host='0.0.0.0')
+	# Get Phillips Hue Connections
+	bridge_ip = json.loads(
+		requests.get('https://www.meethue.com/api/nupnp').content
+		)
+	bridge = Bridge(bridge_ip[0]['internalipaddress'])
+
+	app.run(host='0.0.0.0', debug=True)

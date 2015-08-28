@@ -1,8 +1,10 @@
 Flask==0.10.1
+Flask-Jsonpify==1.5.0
 Jinja2==2.7.3
 MarkupSafe==0.23
 Werkzeug==0.10.4
 itsdangerous==0.24
 phue==0.8
-wsgiref==0.1.2
 redis==2.10.3
+requests==2.7.0
+wsgiref==0.1.2

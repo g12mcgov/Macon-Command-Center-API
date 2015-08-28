@@ -23,5 +23,5 @@ def configLogger(name):
 	) 
 
 	logger = logging.getLogger(name)
-
+	
 	return logger
