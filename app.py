@@ -8,6 +8,7 @@ import ConfigParser
 from database.db import RedisConnect
 from log.loghandler import configLogger
 from phillipshue.color import rgb_to_xy, hex_to_rgb
+from blinds.motor import Blinds
 
 # Flask import  
 from flask import Flask, abort
@@ -70,12 +71,14 @@ def sideBlinds(command):
 	"""
 	command = command.lower()
 
-	if command == 'open':
+	if command == 'open' and db.retrieve("side-position") != 'open':
 		db.insert("side-position", command)
+		blinds.forward(blinds.side_blinds)
 		logger.info("Set 'side-position' to %s", command)
 		return jsonify({"Status": "Ok"})
-	elif command == 'close':
+	elif command == 'close' and db.retrieve("side-position") != 'close':
 		db.insert("side-position", command)
+		blinds.backward(blinds.side_blinds)
 		logger.info("Set 'side-position' to %s", command)
 		return jsonify({"Status": "Ok"})
 	else:
@@ -120,7 +123,7 @@ def getLightState():
 	"""
 	try:
 		if not db.retrieve("state"):
-			abort(404)	
+			pass #abort(404)	
 		return jsonify({
 			"state": db.retrieve("state")
 			})
@@ -198,5 +201,8 @@ if __name__ == "__main__":
 		requests.get('https://www.meethue.com/api/nupnp').content
 		)
 	bridge = Bridge(bridge_ip[0]['internalipaddress'])
+
+	# Blinds 
+	blinds = Blinds()
 
 	app.run(host='0.0.0.0', debug=True)
