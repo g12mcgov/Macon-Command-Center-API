@@ -49,12 +49,12 @@ def blinds(command):
 
 	if command == 'open':
 		db.insert("blinds-position", command)
-		blinds.forward()
+		blinds.backward()
 		logger.info("Set 'blinds-position' to %s", command)
 		return jsonify({"Status": "Ok"})
 	elif command == 'close':
 		db.insert("blinds-position", command)
-		blinds.backward()
+		blinds.forward()
 		logger.info("Set 'blinds-position' to %s", command)
 		return jsonify({"Status": "Ok"})
 	else:
