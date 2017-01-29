@@ -27,10 +27,10 @@ class Blinds(object):
 		self.blinds.setSpeed(20)
 
 	def backward(self):
-		self.blinds.step(1000, Adafruit_MotorHAT.BACKWARD,  Adafruit_MotorHAT.SINGLE)
+		self.blinds.step(2040, Adafruit_MotorHAT.BACKWARD,  Adafruit_MotorHAT.SINGLE)
 
 	def forward(self):
-		self.blinds.step(1000, Adafruit_MotorHAT.FORWARD,  Adafruit_MotorHAT.SINGLE)
+		self.blinds.step(2040, Adafruit_MotorHAT.FORWARD,  Adafruit_MotorHAT.SINGLE)
 
 	def adjust_forward(self):
 		self.blinds.step(5, Adafruit_MotorHAT.FORWARD,  Adafruit_MotorHAT.SINGLE)
