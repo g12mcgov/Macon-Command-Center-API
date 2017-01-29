@@ -21,18 +21,10 @@ class Blinds(object):
 	def __init__(self):
 		# create a default object, no changes to I2C address or frequency
 		self.mh = Adafruit_MotorHAT(addr=0x60)
-		atexit.register(self.turnOffMotors)
 		# 200 steps/rev, motor port #2
 		self.blinds = self.mh.getStepper(200, 2)
 		# 30 RPM
 		self.blinds.setSpeed(20)
-
-	# recommended for auto-disabling motors on shutdown!
-	def turnOffMotors(self):
-		self.mh.getMotor(1).run(Adafruit_MotorHAT.RELEASE)
-		self.mh.getMotor(2).run(Adafruit_MotorHAT.RELEASE)
-		self.mh.getMotor(3).run(Adafruit_MotorHAT.RELEASE)
-		self.mh.getMotor(4).run(Adafruit_MotorHAT.RELEASE)
 
 	def backward(self):
 		self.blinds.step(1000, Adafruit_MotorHAT.BACKWARD,  Adafruit_MotorHAT.SINGLE)
