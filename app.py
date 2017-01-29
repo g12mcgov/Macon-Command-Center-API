@@ -1,14 +1,17 @@
 import json
 import socket
+import random
 import requests
 import binascii
 import ConfigParser
+from threading import Thread
 
 # Local Includes
+from blinds.motor import Blinds
 from database.db import RedisConnect
+from projector.motor import Projector
 from log.loghandler import configLogger
 from phillipshue.color import rgb_to_xy, hex_to_rgb
-from blinds.motor import Blinds
 
 # Flask import  
 from flask import Flask, abort
@@ -87,6 +90,32 @@ def sideBlinds(command):
 			)
 		abort(404)
 
+@app.route("/blinds/side/adjust/<command>", methods=['GET'])
+def sideBlindsAdjust(command):
+	"""
+	Adjusts side blinds.
+	"""
+	command = command.lower()
+
+	if command == 'forward':
+		blinds.adjust_forward(blinds.side_blinds)
+		logger.info("Adjusted side-blinds forward")
+		return jsonify({
+			"Status": "Ok"
+			})
+	elif command == 'backward':
+		blinds.adjust_backward(blinds.side_blinds)
+		logger.info("Adjusted side-blinds backward")
+		return jsonify({
+			"Status": "Ok"
+			})
+	else:
+		logger.error(
+			" Side Blinds: Invalid command (command=%s)", command
+			)
+		abort(404)
+
+
 @app.route("/lights/state/<command>", methods=['GET'])
 def changeLightState(command):
 	"""
@@ -122,11 +151,16 @@ def getLightState():
 	Returns the current state of the lights. (off/on)
 	"""
 	try:
-		if not db.retrieve("state"):
-			pass #abort(404)	
-		return jsonify({
-			"state": db.retrieve("state")
-			})
+		# If a single light is off, mark as off 
+		# (since we're not giving individual switches for each light)
+		if False in [light.on for light in bridge.get_light_objects()]:
+			return jsonify({
+				"state": "off"
+				})
+		else:
+			return jsonify({
+				"state": "on"
+				})
 	except Exception as err:
 		abort(404)
 
@@ -178,6 +212,76 @@ def changeLightColor(color):
 
 		return jsonify({"Status": "Ok"})
 
+@app.route("/lights/theme/<theme>", methods=['GET'])
+def changeLightTheme(theme):
+	lights = bridge.get_light_objects()
+	if theme == 'party':
+		# myClassA()
+		while True:
+			for light in lights:
+				light.brightness = 254
+				light.xy = [random.random(), random.random()]
+	elif theme == 'strobe':
+		while True:
+			for light in lights:
+				light.on = True
+				light.brightness = 254
+				# White
+				light.xy = [0.3227, 0.329]
+				light.off = True
+	elif theme == 'allon':
+		for light in lights:
+			light.on = True
+			light.brightness = 254
+			# Warm color
+			light.xy = [0.5128, 0.4147]
+		return jsonify({
+			"status": "ok"
+			})
+
+@app.route("/movie/<command>", methods=['GET'])
+def movieTime(command):
+	"""
+	Activates movie time.
+	(lowers projector screen and turns off lights)
+	"""
+	command = command.lower()
+	lights = bridge.get_light_objects()
+
+	# Activate
+	if command == 'start':
+		# Lower projector screen
+		projector_screen.hoist(projector_screen.projector_motor)
+		# Insert into database, caching position
+                db.insert("projector-position", command)
+                logger.info("Lowered projector screen")
+		# Turn off all lights
+		for light in lights:
+			light.on = False
+		logger.info("Turned off all lights")
+		return jsonify({
+			"Status": "Ok"
+			})
+	# Deactivate
+	elif command == 'stop':
+		# Raise projector screen
+		projector_screen.lower(projector_screen.projector_motor)
+		# Insert into database, caching position 
+                logger.info("Lowered projector screen")
+		# Turn on all lights
+		for light in lights:
+			light.on = True
+			light.brightness = 254
+			light.xy = [0.5128, 0.4147]
+		logger.info("Turned on all lights")
+		return jsonify({
+			"Status": "Ok"
+			})
+	else:
+		logger.error(
+			" Movie Time: Invalid command (command=%s)", command
+			)
+		abort(404)
 
 if __name__ == "__main__":
 	# Read in config parameters
@@ -204,5 +308,8 @@ if __name__ == "__main__":
 
 	# Blinds 
 	blinds = Blinds()
+
+	# Projector
+	projector_screen = Projector()
 
 	app.run(host='0.0.0.0', debug=True)
