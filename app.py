@@ -30,91 +30,38 @@ def index():
 	ip_address = socket.gethostbyname(socket.gethostname())
 	return jsonify({"IP": ip_address})
 
-@app.route("/blinds/position", methods=['GET'])
+@app.route("/blinds", methods=['GET'])
 def getBlindStatus():
 	"""
 	Returns a packet of the current blind positions.
-	(side/backyard)
 	"""
-	blind_positions = {
-	"side": db.retrieve("side-position") if db.retrieve("side-position") else None,
-	"backyard": db.retrieve("backyard-position") if db.retrieve("backyard-position") else None
-	}
-
+	blind_positions = db.retrieve("blinds-position") if db.retrieve("blinds-position") else None
 	if None in blind_positions.values(): 
 		abort(404)
-
 	return jsonify(blind_positions)
 
-@app.route("/blinds/backyard/<command>", methods=['GET'])
-def backyardBlinds(command):
+@app.route("/blinds/<command>", methods=['GET'])
+def blinds(command):
 	"""
-	Opens/closes the backyard blinds.
+	Opens/closes the blinds.
 	"""
 	command = command.lower()
 
 	if command == 'open':
-		db.insert("backyard-position", command)
-		logger.info("Set 'backyard-position' to %s", command)
+		db.insert("blinds-position", command)
+		blinds.forward()
+		logger.info("Set 'blinds-position' to %s", command)
 		return jsonify({"Status": "Ok"})
 	elif command == 'close':
-		db.insert("backyard-position", command)
-		logger.info("Set 'backyard-position' to %s", command)
+		db.insert("blinds-position", command)
+		blinds.backward()
+		logger.info("Set 'blinds-position' to %s", command)
 		return jsonify({"Status": "Ok"})
 	else:
 		logger.error(
-			" Backyard Blinds: Invalid command (command=%s)", command
+			" Blinds: Invalid command (command=%s)", command
 			)
 		abort(404)
-
-@app.route("/blinds/side/<command>", methods=['GET'])
-def sideBlinds(command):
-	"""
-	Opens/closes the side blinds.
-	"""
-	command = command.lower()
-
-	if command == 'open' and db.retrieve("side-position") != 'open':
-		db.insert("side-position", command)
-		blinds.forward(blinds.side_blinds)
-		logger.info("Set 'side-position' to %s", command)
-		return jsonify({"Status": "Ok"})
-	elif command == 'close' and db.retrieve("side-position") != 'close':
-		db.insert("side-position", command)
-		blinds.backward(blinds.side_blinds)
-		logger.info("Set 'side-position' to %s", command)
-		return jsonify({"Status": "Ok"})
-	else:
-		logger.error(
-			" Side Blinds: Invalid command (command=%s)", command
-			)
-		abort(404)
-
-@app.route("/blinds/side/adjust/<command>", methods=['GET'])
-def sideBlindsAdjust(command):
-	"""
-	Adjusts side blinds.
-	"""
-	command = command.lower()
-
-	if command == 'forward':
-		blinds.adjust_forward(blinds.side_blinds)
-		logger.info("Adjusted side-blinds forward")
-		return jsonify({
-			"Status": "Ok"
-			})
-	elif command == 'backward':
-		blinds.adjust_backward(blinds.side_blinds)
-		logger.info("Adjusted side-blinds backward")
-		return jsonify({
-			"Status": "Ok"
-			})
-	else:
-		logger.error(
-			" Side Blinds: Invalid command (command=%s)", command
-			)
-		abort(404)
-
 
 @app.route("/lights/state/<command>", methods=['GET'])
 def changeLightState(command):
@@ -313,3 +260,4 @@ if __name__ == "__main__":
 	projector_screen = Projector()
 
 	app.run(host='0.0.0.0', debug=True)
+

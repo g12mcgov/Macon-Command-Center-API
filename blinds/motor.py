@@ -10,11 +10,9 @@
 # @Last Modified by:   Grant McGovern
 # @Last Modified time: 2016-02-25 21:06:41
 
-from Adafruit_MotorHAT import (
-	Adafruit_MotorHAT,
-	Adafruit_DCMotor, 
-	Adafruit_StepperMotor
-	)
+from Adafruit_MotorHAT import Adafruit_MotorHAT
+from Adafruit_MotorHAT import Adafruit_DCMotor 
+from Adafruit_MotorHAT import Adafruit_StepperMotor
 
 import time
 import atexit
@@ -22,12 +20,12 @@ import atexit
 class Blinds(object):
 	def __init__(self):
 		# create a default object, no changes to I2C address or frequency
-		self.mh = Adafruit_MotorHAT()
+		self.mh = Adafruit_MotorHAT(addr=0x60)
 		atexit.register(self.turnOffMotors)
-		# 200 steps/rev, motor port #1
-		self.side_blinds = self.mh.getStepper(200, 1)
+		# 200 steps/rev, motor port #2
+		self.blinds = self.mh.getStepper(200, 2)
 		# 30 RPM
-		self.side_blinds.setSpeed(30)
+		self.blinds.setSpeed(20)
 
 	# recommended for auto-disabling motors on shutdown!
 	def turnOffMotors(self):
@@ -36,14 +34,14 @@ class Blinds(object):
 		self.mh.getMotor(3).run(Adafruit_MotorHAT.RELEASE)
 		self.mh.getMotor(4).run(Adafruit_MotorHAT.RELEASE)
 
-	def backward(self, motor):
-		motor.step(86, Adafruit_MotorHAT.FORWARD,  Adafruit_MotorHAT.DOUBLE)
+	def backward(self):
+		self.blinds.step(1000, Adafruit_MotorHAT.BACKWARD,  Adafruit_MotorHAT.SINGLE)
 
-	def forward(self, motor):
-		motor.step(86, Adafruit_MotorHAT.BACKWARD,  Adafruit_MotorHAT.DOUBLE)
+	def forward(self):
+		self.blinds.step(1000, Adafruit_MotorHAT.FORWARD,  Adafruit_MotorHAT.SINGLE)
 
-	def adjust_forward(self, motor):
-		motor.step(5, Adafruit_MotorHAT.BACKWARD,  Adafruit_MotorHAT.DOUBLE)
+	def adjust_forward(self):
+		self.blinds.step(5, Adafruit_MotorHAT.FORWARD,  Adafruit_MotorHAT.SINGLE)
 
-	def adjust_backward(self, motor):
-		motor.step(5, Adafruit_MotorHAT.FORWARD,  Adafruit_MotorHAT.DOUBLE)
+	def adjust_backward(self):
+		self.blinds.step(5, Adafruit_MotorHAT.BACKWARD,  Adafruit_MotorHAT.SINGLE)
