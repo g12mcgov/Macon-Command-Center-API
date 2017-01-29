@@ -54,3 +54,8 @@ The root endpoint (`/`) returns the IP Address of the host machine.
 	/lights/state 				# Returns current light state (on/off)
 	/lights/:color				# Sets new color
 	/lights/color 				# Returns current color
+
+Note:
+=======
+
+As of 1/28/17, this repo has been modified to work for my apartment in NYC. All changes are now in the `NYC-Apartment` branch. 
