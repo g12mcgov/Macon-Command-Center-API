@@ -20,6 +20,7 @@ import atexit
 class Blinds(object):
 	def __init__(self):
                 self.distance = 2060
+                self.adjustment_distance = 10
                 # create a default object, no changes to I2C address or frequency
 		self.mh = Adafruit_MotorHAT(addr=0x60)
 		# 200 steps/rev, motor port #2
@@ -34,7 +35,7 @@ class Blinds(object):
 		self.blinds.step(self.distance, Adafruit_MotorHAT.FORWARD,  Adafruit_MotorHAT.SINGLE)
 
 	def adjust_forward(self):
-		self.blinds.step(5, Adafruit_MotorHAT.FORWARD,  Adafruit_MotorHAT.SINGLE)
+		self.blinds.step(self.adjustment_distance, Adafruit_MotorHAT.FORWARD,  Adafruit_MotorHAT.SINGLE)
 
 	def adjust_backward(self):
-		self.blinds.step(5, Adafruit_MotorHAT.BACKWARD,  Adafruit_MotorHAT.SINGLE)
+		self.blinds.step(self.adjustment_distance, Adafruit_MotorHAT.BACKWARD,  Adafruit_MotorHAT.SINGLE)
