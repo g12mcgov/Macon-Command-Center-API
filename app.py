@@ -1,3 +1,4 @@
+import os
 import json
 import socket
 import random
@@ -231,9 +232,10 @@ def movieTime(command):
 		abort(404)
 
 if __name__ == "__main__":
-	# Read in config parameters
+        # Read in config parameters
+        dir = os.path.dirname(__file__)
 	config = ConfigParser.RawConfigParser()
-	config.readfp(open('config.cfg'))
+	config.readfp(open(os.path.join(dir, 'config.cfg')))
 
 	# Get params from file
 	RASPBERRY_PI_IP_ADDRESS = config.get('macon_command_center', 'RASPBERRY_PI_IP_ADDRESS')
